@@ -2,5 +2,7 @@
 __pycache__/
 *.py[cod]
 .env
+.env.signup-test
+import-output/
 .pytest_cache/
 .vscode/

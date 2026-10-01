@@ -1,0 +1,24 @@
+-- Extend the existing enum only; no tables or rows are removed.
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'accessory';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'capture_card';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'case_fan';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'chair';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'desk';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'headphones';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'keyboard';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'laptop';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'lighting';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'microphone';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'monitor';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'mouse';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'mousepad';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'network_card';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'os';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'prebuilt_desktop';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'sound_card';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'speaker';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'stand';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'thermal_compound';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'vr_headset';
+ALTER TYPE public.part_category ADD VALUE IF NOT EXISTS 'webcam';
+NOTIFY pgrst, 'reload schema';
