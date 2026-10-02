@@ -164,3 +164,37 @@ async def change_comment(comment_id: int, action: Literal['edit', 'delete'], bod
                           params={'id': f'eq.{comment_id}', 'author_id': 'eq.' + user['id']},
                           body={'content': body.content} if action == 'edit' else None)
     return {'success': True}
+
+
+@router.get('/parts/{part_id}/comments')
+async def part_comments(part_id: int, offset: int = Query(0, ge=0), gateway=Depends(get_gateway)):
+    rows = await gateway.request('GET', '/rest/v1/part_comments', params={
+        'select': 'id,part_id,author_id,content,created_at,' + AUTHOR,
+        'part_id': f'eq.{part_id}', 'order': 'created_at.desc,id.desc', 'offset': str(offset), 'limit': '21'})
+    return {'items': rows[:20], 'has_more': len(rows) > 20}
+
+
+@router.post('/parts/{part_id}/comments', status_code=201)
+async def create_part_comment(part_id: int, body: CommentInput, gateway=Depends(get_gateway), token=Depends(get_token)):
+    user = await current_user(gateway, token)
+    parts = await gateway.request('GET', '/rest/v1/parts', params={
+        'select': 'id', 'id': f'eq.{part_id}', 'is_active': 'eq.true', 'limit': '1'})
+    if not parts:
+        raise HTTPException(404, '부품을 찾을 수 없습니다.')
+    rows = await gateway.request('POST', '/rest/v1/part_comments', token=token, prefer='return=representation', body={
+        'part_id': part_id, 'author_id': user['id'], 'content': body.content})
+    return {'id': rows[0]['id']}
+
+
+@router.post('/part-comments/{comment_id}/delete')
+async def delete_part_comment(comment_id: int, gateway=Depends(get_gateway), token=Depends(get_token)):
+    user = await current_user(gateway, token)
+    rows = await gateway.request('GET', '/rest/v1/part_comments', token=token, params={
+        'select': 'id,author_id', 'id': f'eq.{comment_id}', 'limit': '1'})
+    if not rows:
+        raise HTTPException(404, '댓글을 찾을 수 없습니다.')
+    if rows[0]['author_id'] != user['id']:
+        raise HTTPException(403, '내 댓글만 삭제할 수 있습니다.')
+    await gateway.request('DELETE', '/rest/v1/part_comments', token=token,
+                          params={'id': f'eq.{comment_id}', 'author_id': 'eq.' + user['id']})
+    return {'success': True}

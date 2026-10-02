@@ -70,6 +70,16 @@ class OnboardingTests(unittest.TestCase):
             self.assertEqual(saved['preferences']['conditions']['budget_won'], 1500000)
             self.assertIn('CPU', saved['preferences']['conditions']['preferences'])
             self.assertEqual(metadata['nickname'], 'keep-me')
+            client.post(root, headers=headers, json={'claimed_level': 'beginner', 'attempts': {}})
+            beginner_questions = client.get(root, headers=headers).json()['surveys']['beginner']
+            self.assertEqual(len(beginner_questions), 6)
+            body['answers'] = [0] * len(beginner_questions)
+            self.assertEqual(client.post(root + '/preferences', headers=headers, json=body).status_code, 200)
+            saved = client.get(root, headers=headers).json()['profile']['preferences']['conditions']
+            self.assertEqual(saved['budget_won'], 1500000)
+            self.assertEqual(saved['purpose'], '게임')
+            self.assertEqual(saved['programs'], 'PUBG')
+            self.assertIn('외관', saved['preferences'])
             body['answers'] = [5]*5
             self.assertEqual(client.post(root + '/preferences', headers=headers, json=body).status_code, 422)
             client.post(root, headers=headers, json={'claimed_level': 'advanced', 'attempts': {'advanced': self.correct('advanced')}})
