@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
-from app.api import auth, parts, estimates, onboarding, community
+from app.api import auth, parts, estimates, onboarding, community, conversations
 from app.services.estimates import EstimateEngine
 from app.config import Settings
 from app.services.supabase import SupabaseGateway
@@ -52,6 +52,7 @@ def create_app(settings: Settings | None = None, transport=None):
     app.include_router(onboarding.router, prefix='/api')
     app.include_router(estimates.router, prefix='/api')
     app.include_router(community.router, prefix='/api')
+    app.include_router(conversations.router, prefix='/api')
     return app
 
 
