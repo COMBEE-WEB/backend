@@ -52,6 +52,31 @@ class ApiTests(unittest.TestCase):
             self.assertEqual(client.get('/api/auth/me').status_code, 401)
             self.assertEqual(client.post('/api/auth/logout').status_code, 401)
 
+    def test_profile_update_uses_authenticated_user_id(self):
+        import json
+
+        def handler(request):
+            self.assertEqual(request.headers['Authorization'], 'Bearer user-token')
+            if request.url.path == '/auth/v1/user':
+                return httpx.Response(200, json={'id': 'verified-id'})
+            self.assertEqual(request.method, 'PATCH')
+            self.assertEqual(request.url.path, '/rest/v1/profiles')
+            self.assertIn('id=eq.verified-id', str(request.url))
+            self.assertEqual(json.loads(request.content), {'nickname': '새 닉네임'})
+            return httpx.Response(200, json=[{'id': 'verified-id', 'nickname': '새 닉네임'}])
+
+        with self.client(handler) as client:
+            response = client.post('/api/auth/profile', headers={'Authorization': 'Bearer user-token'},
+                                   json={'nickname': '  새 닉네임  ', 'id': 'other-user'})
+            self.assertEqual(response.status_code, 200)
+            self.assertEqual(response.json()['profile']['nickname'], '새 닉네임')
+
+    def test_profile_update_rejects_blank_nickname(self):
+        with self.client(lambda r: self.fail('Invalid profile sent upstream')) as client:
+            response = client.post('/api/auth/profile', headers={'Authorization': 'Bearer user-token'},
+                                   json={'nickname': '   '})
+            self.assertEqual(response.status_code, 422)
+
     def test_me_verifies_token_and_keeps_user_rls(self):
         paths = []
 

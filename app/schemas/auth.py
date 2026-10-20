@@ -72,3 +72,15 @@ class SignupRequest(LoginRequest):
 
 class RefreshRequest(BaseModel):
     refresh_token: SecretStr = Field(min_length=1, max_length=4096)
+
+
+class ProfileUpdateRequest(BaseModel):
+    nickname: str = Field(min_length=1, max_length=30)
+
+    @field_validator('nickname')
+    @classmethod
+    def validate_nickname(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError('닉네임을 입력해주세요.')
+        return value

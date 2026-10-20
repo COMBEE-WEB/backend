@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Response
 from app.api.dependencies import get_gateway, get_token
 from app.schemas.auth import LoginRequest, RefreshRequest, SignupRequest
 from app.schemas.auth import EmailRequest, NewPasswordRequest, ChangePasswordRequest
-from app.schemas.auth import RecoveryCodeRequest
+from app.schemas.auth import RecoveryCodeRequest, ProfileUpdateRequest
 
 router = APIRouter(prefix='/auth', tags=['auth'])
 
@@ -126,6 +126,18 @@ async def me(token=Depends(get_token), gateway=Depends(get_gateway)):
     return {'user': {'id': user['id'], 'email': user.get('email')},
             'profile': profiles[0] if profiles else None,
             'member': private[0] if private else None}
+
+
+@router.post('/profile')
+async def set_profile(payload: ProfileUpdateRequest, token=Depends(get_token), gateway=Depends(get_gateway)):
+    # Always derive the target ID from the authenticated token, never from user input.
+    user = await gateway.request('GET', '/auth/v1/user', token=token)
+    rows = await gateway.request('PATCH', '/rest/v1/profiles', token=token,
+                                 params={'id': f'eq.{user["id"]}', 'select': 'id,nickname,avatar_url,role,status'},
+                                 body={'nickname': payload.nickname}, prefer='return=representation')
+    if not rows:
+        raise HTTPException(403, '프로필 수정 권한을 확인해주세요.')
+    return {'profile': rows[0]}
 
 
 @router.post('/logout', status_code=204)
